@@ -11,7 +11,11 @@ routes.get('/', async(req, res)=>{
 routes.post('/new', async(req, res)=>{
     await db.sync();
     let data = req.body;
-    res.send(data);
+    let newWord = await Word.create({
+        spanish : data['spanish'],
+        english : data['english'],
+    });
+    res.send(newWord.toJSON());
 });
 
 module.exports = routes;
