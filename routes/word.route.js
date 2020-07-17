@@ -1,6 +1,7 @@
 const routes = require('express').Router();
 const db = require('../database');
 const Word = require('../models/word.model');
+const User = require('../models/user.model');
 
 routes.get('/', async (req, res) => {
     await db.sync();
@@ -8,10 +9,30 @@ routes.get('/', async (req, res) => {
     res.send(data);
 });
 
-routes.post('/new', async (req, res) => {
+async function verifyToken(req, res, next) {
+    await db.sync();
+    const token = req.headers['authorization'];
+    if(!token) return res.sendStatus(403);
+
+    try {
+        let user = await User.findOne({
+            where: {
+                token: token
+            }
+        });
+
+        if (!user) res.sendStatus(403);
+        next();
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+routes.post('/new', verifyToken, async (req, res) => {
     await db.sync();
     let data = req.body;
-    let newWord = await Word.findOrCreate({
+    let word = null;
+    await Word.findOrCreate({
         where: {
             Spanish: data['Spanish']
         },
@@ -21,15 +42,15 @@ routes.post('/new', async (req, res) => {
         }
     }).then(result => {
         var created = result[1];
-
+        word = result[0];
         if (!created) {
             return res.send('Word already exists in database!');
         }
     });
-    return res.send(newWord.toJSON());
+    return res.send(word.toJSON());
 });
 
-routes.post('/new/json', async (req, res) => {
+routes.post('/new/json', verifyToken, async (req, res) => {
     await db.sync();
     let data = req.body;
     let words = [];
