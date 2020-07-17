@@ -8,7 +8,7 @@ const db = require('./database');
 const wordRoutes = require('./routes/word.route');
 
 app.use(express.json());
-app.use('api/word', wordRoutes);
+app.use('/api/word', wordRoutes);
 app.get("/", async(req, res)=> {
     await db.authenticate();
     res.send('Hello, this is spanish learning game backend!');
