@@ -12,8 +12,8 @@ routes.post('/new', async(req, res)=>{
     await db.sync();
     let data = req.body;
     let newWord = await Word.create({
-        spanish : data['spanish'],
-        english : data['english'],
+        Spanish : data['Spanish'],
+        English : data['English'],
     });
     res.send(newWord.toJSON());
 });
