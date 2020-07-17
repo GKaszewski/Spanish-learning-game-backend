@@ -42,11 +42,15 @@ routes.post('/auth/register', async (req, res) => {
     let hashedPassword = await bcrypt.hash(data['password'], salt);
     let newUser = await User.create({
         username: data['username'],
-        password: hashedPassword
+        password: hashedPassword,
+        token: ''
     });
 
     const token = jwt.sign({ id: newUser.id }, config.secret);
-    return res.send({ token: token });
+    
+    newUser.token = token;
+    await newUser.save();
+    return res.send({token: newUser.token});
 });
 
 routes.post('/auth/login', async (req, res) => {
@@ -54,22 +58,23 @@ routes.post('/auth/login', async (req, res) => {
     let data = req.body;
     
     const error = validateUser(data);
-    if (!error) return res.status(400).json({
-        message: 'Credentials are wrong.'
-    });
+    if (!error) return res.sendStatus(400).send('Credentials are wrong.');
 
     let user = await User.findOne({
         where: {
             username: data['username']
         }
     });
-    if (!user) return res.status(404).send("Couldn't find user.");
+    if (!user) return res.sendStatus(404).send("Couldn't find user.");
 
     const validPassword = await bcrypt.compare(data['password'], user.password);
-    if(!validPassword) return res.status(400).send('Wrong password!');
+    if(!validPassword) return res.sendStatus(400).send('Wrong password!');
 
-    const token = jwt.sign({id:user.id}, config.secret);
-    return res.send({token: token});
+    const token = jwt.sign({ id: user.id }, config.secret);
+
+    user.token = token;
+    await user.save();
+    return res.send({token: user.token});
 });
 
 module.exports = routes;
