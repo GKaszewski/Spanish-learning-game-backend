@@ -15,6 +15,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(cors());
 app.use('/api/word', wordRoutes);
 app.use('/', userRoutes);
+
 app.get("/", async(req, res)=> {
     await db.authenticate();
     res.send('Welcome!');
